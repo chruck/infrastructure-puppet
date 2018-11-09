@@ -8,9 +8,8 @@ class buildbot_slave (
   $shell             = '/bin/bash',
   $user_present      = 'present',
   $username          = 'buildslave',
-  $service_ensure    = 'running',
   $service_name      = 'buildslave',
-  $gradle_versions   = ['3.5', '4.3', '4.3.1'],
+  $gradle_versions   = ['4.6', '4.7', '4.8.1','4.9','4.10','4.10.2'],
 
   # override below in eyaml
 
@@ -23,6 +22,8 @@ class buildbot_slave (
   $bb_basepackages = [],
 
 ){
+
+  $slave_dir = "/home/${username}/slave"
 
   include buildbot_slave::buildbot
 
@@ -186,14 +187,12 @@ class buildbot_slave (
     "/home/${username}/slave/buildbot.tac":
       content => template('buildbot_slave/buildbot.tac.erb'),
       mode    => '0644',
-      notify  => Service[$service_name],
       require => Exec['bootstrap-buildslave'];
 
     "/home/${username}/slave/private.py":
       content => template('buildbot_slave/private.py.erb'),
       owner   => $username,
       mode    => '0640',
-      notify  => Service[$service_name],
       require => Exec['bootstrap-buildslave'];
 
     "/home/${username}/slave/info/host":
@@ -207,13 +206,8 @@ class buildbot_slave (
       require => Exec['bootstrap-buildslave'];
   }
 
-  -> service {
-    $service_name:
-      ensure     => $service_ensure,
-      enable     => true,
-      hasstatus  => false,
-      hasrestart => true,
-      require    => Exec['bootstrap-buildslave'];
-  }
+  ::systemd::unit_file { 'buildslave.service':
+      content => template('buildbot_slave/buildslave.service.erb'),
+}
 
 }

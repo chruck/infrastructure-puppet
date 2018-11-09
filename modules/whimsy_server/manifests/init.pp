@@ -30,13 +30,17 @@ class whimsy_server (
     libgmp3-dev,
     libldap2-dev,
     libsasl2-dev,
+    python3-pip,
     ruby-dev,
     zlib1g-dev,
 
     imagemagick,
+    img2pdf,
     nodejs,
     pdftk,
     procmail,
+    poppler-utils,
+    texlive-extra-utils,
 
     gnupg2,
   ]
@@ -48,6 +52,13 @@ class whimsy_server (
   }
 
   -> package { $packages: ensure => installed }
+
+  exec { "pip3_img2pdf":
+    command => "pip3 install img2pdf",
+    unless => "pip3 list | grep img2pdf",
+    path => '/bin:/usr/bin',
+    require => Package['python3-pip']
+  }
 
   ############################################################
   #               Web Server / Application content           #

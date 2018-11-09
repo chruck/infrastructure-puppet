@@ -628,6 +628,8 @@ buildbot = r
 [/infrastructure/qpsmtpd]
 @infrastructure = rw
 @member = r
+# allow hermes-vm:apmail/smtpd checkout
+apezmlm = r
 
 [/infrastructure/trunk/acreq]
 acrequser = rw

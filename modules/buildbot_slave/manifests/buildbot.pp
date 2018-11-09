@@ -43,6 +43,7 @@ class buildbot_slave::buildbot (
     'jdk1.8.0_144-unlimited-security',
     'jdk1.8.0_152',
     'jdk1.8.0_172',
+    'jdk1.8.0_191',
     'jdk-9-ea-b132',
     'jdk-9-ea-b139',
     'jigsaw-jdk-9-ea-b156',
@@ -64,6 +65,7 @@ class buildbot_slave::buildbot (
     'jdk-11-ea+22',
     'jdk-11-ea+28',
     'openjdk-jdk-10.0.2',
+    'openjdk-12-ea+18',
 ],
   $tools = [
     'ant',
@@ -161,7 +163,7 @@ class buildbot_slave::buildbot (
   buildbot_slave::symlink_asfpackages  { $java_asfpackages: }
   file { '/home/buildslave/slave/tools/java/latest':
     ensure => link,
-    target => '/usr/local/asfpackages/java/jdk1.8.0_172',
+    target => '/usr/local/asfpackages/java/jdk1.8.0_191',
   }
   file { '/home/buildslave/slave/tools/java/latest1.5':
     ensure => link,
@@ -177,7 +179,7 @@ class buildbot_slave::buildbot (
   }
   file { '/home/buildslave/slave/tools/java/latest1.8':
     ensure => link,
-    target => '/usr/local/asfpackages/java/jdk1.8.0_172',
+    target => '/usr/local/asfpackages/java/jdk1.8.0_191',
   }
   file { '/home/buildslave/slave/tools/java/latest1.9':
     ensure => link,

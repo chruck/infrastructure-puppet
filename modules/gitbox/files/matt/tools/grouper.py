@@ -22,8 +22,7 @@ import os
 import re
 import sqlite3
 import sys
-import urllib2
-
+import time
 import ldap
 import requests
 
@@ -54,6 +53,34 @@ MFA = json.load(open("../mfa.json"))
 WRITERS = {}
 LINKS = {}
 
+def getJSON(url):
+    cont = True
+    tries = 0
+    while cont:
+        tries = tries + 1
+        if tries > 5:
+            logging.warning("Giving up on URL %s" % url)
+            return []
+        try:
+            rv = requests.get(url)
+            if rv.status_code != 200:
+                rv.raise_for_status()
+            js = rv.json()
+            return js
+        except requests.HTTPError as e:
+            sc = e.response.status_code
+            logging.warning("GitHub responsed with error code %s on URL %s" % (sc, url.replace(ORG_READ_TOKEN, 'XXXX')))
+            if 'abuse' in e.response.text:
+                logging.warn("Hit GitHub's abuse detector, sleeping it off")
+                time.sleep(10)
+            elif 'API rate limit exceeded' in e.response.text:
+                logging.error("API Rate limit hit, cannot continue!")
+                sys.stderr.write(e.response.text)
+                sys.exit(-1)
+            else:
+                logging.error("Unknown error code %s, aborting: %s" % (sc, e.response.text))
+                sys.stderr.write(e.response.text)
+                sys.exit(-1)
 
 def getGitHubTeams():
     """Fetches a list of all GitHub committer teams (projects only, not the
@@ -63,8 +90,7 @@ def getGitHubTeams():
     for n in range(1, 100):
         url = "https://api.github.com/orgs/apache/teams?access_token=%s&page=%u" % (
             ORG_READ_TOKEN, n)
-        response = urllib2.urlopen(url)
-        data = json.load(response)
+        data = getJSON(url)
         # Break if we've hit the end
         if len(data) == 0:
             break
@@ -89,8 +115,7 @@ def getGitHubRepos():
     for n in range(1, 150):  # 150 would be 4500 repos, we have 1750ish now...
         url = "https://api.github.com/orgs/apache/repos?access_token=%s&page=%u" % (
             ORG_READ_TOKEN, n)
-        response = urllib2.urlopen(url)
-        data = json.load(response)
+        data = getJSON(url)
         # Break if no more repos
         if len(data) == 0:
             break
@@ -108,8 +133,7 @@ def getGitHubTeamMembers(teamID):
     for n in range(1, 100):  # 100 would be 3000 members
         url = "https://api.github.com/teams/%s/members?access_token=%s&page=%u" % (
             teamID, ORG_READ_TOKEN, n)
-        response = urllib2.urlopen(url)
-        data = json.load(response)
+        data = getJSON(url)
         # Break if no more members
         if len(data) == 0:
             break
@@ -124,11 +148,10 @@ def getGitHubTeamRepos(teamID):
     if str(int(teamID)) != str(teamID):
         logging.warning("Bad Team ID passed!!")
         return None
-    for n in range(1, 20):
-        url = "https://api.github.com/teams/%s/repos?access_token=%s&page=%u" % (
+    for n in range(1, 50): # 50 pages = 500 repos max
+        url = "https://api.github.com/teams/%s/repos?per_page=10&access_token=%s&page=%u" % (
             teamID, ORG_READ_TOKEN, n)
-        response = urllib2.urlopen(url)
-        data = json.load(response)
+        data = getJSON(url)
         # Break if no more members
         if len(data) == 0:
             break
@@ -143,7 +166,7 @@ def createGitHubTeam(project):
     # Make sure we only allow the ones with permission to use MATT
     if not project in MATT_PROJECTS:
         logging.error(
-            " - This project has not been cleared for MATT yet. Aborting team creation")
+            " - This project has not been cleared for GitBox yet. Aborting team creation")
         return False
 
     url = "https://api.github.com/orgs/apache/teams?access_token=%s" % ORG_READ_TOKEN
@@ -296,7 +319,7 @@ existingRepos = getGitHubRepos()
 
 
 # Process each project in the MATT test
-for project in MATT_PROJECTS:
+for project in sorted(MATT_PROJECTS):
     logging.info("Processing GitHub team for " + project)
     ptype = MATT_PROJECTS[project]
 

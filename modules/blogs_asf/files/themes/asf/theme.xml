@@ -81,4 +81,17 @@
             <templateLanguage>velocity</templateLanguage>
         </rendition>
     </template>
+
+    <template action="tagsIndex">
+        <name>TagsIndex</name>
+        <description>Tag index page</description>
+        <navbar>false</navbar>
+        <hidden>true</hidden>
+        <contentType>text/html</contentType>
+        <rendition>
+            <templateLanguage>velocity</templateLanguage>
+            <contentsFile>tagsIndex.vm</contentsFile>
+        </rendition>
+    </template>
+
 </weblogtheme>

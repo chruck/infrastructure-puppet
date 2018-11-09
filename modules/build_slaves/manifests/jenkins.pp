@@ -51,11 +51,14 @@ class build_slaves::jenkins (
     'jbake-2.5.1',
     'jbake-2.6.1',
     ],
+  #latest gradle version gets installed on line 229
   $gradle_versions = [
-    '3.5',
-    '4.3.1',
-    '4.4.1',
+    '4.6',
+    '4.7',
     '4.8.1',
+    '4.9',
+    '4.10',
+    '4.10.2',
     ],
   # $maven_old = ['apache-maven-3.0.4','apache-maven-3.2.1'],
   $maven = [
@@ -104,6 +107,7 @@ class build_slaves::jenkins (
     'jdk1.8.0_144-unlimited-security',
     'jdk1.8.0_152',
     'jdk1.8.0_172',
+    'jdk1.8.0_191',
     'jigsaw-jdk-9-ea-b156',
     'jdk-9-ea-b179',
     'jdk-9-b181',
@@ -125,6 +129,7 @@ class build_slaves::jenkins (
     'jdk-11-ea+22',
     'jdk-11-ea+28',
     'openjdk-jdk-10.0.2',
+    'openjdk-12-ea+18',
     ],
 ) {
 
@@ -222,7 +227,7 @@ class build_slaves::jenkins (
   apt::ppa { 'ppa:cwchien/gradle':
     ensure => present,
   }
-  -> package { 'gradle': # this installs the latest version which is 4 right now
+  -> package { 'gradle': # this installs the latest version
     ensure => latest,
   }
 
@@ -525,7 +530,7 @@ class build_slaves::jenkins (
   }
   file { "/home/${build_slaves::username}/tools/java/latest":
     ensure => link,
-    target => '/usr/local/asfpackages/java/jdk1.8.0_172',
+    target => '/usr/local/asfpackages/java/jdk1.8.0_191',
   }
   file { "/home/${build_slaves::username}/tools/java/latest1.4":
     ensure => link,
@@ -545,7 +550,7 @@ class build_slaves::jenkins (
   }
   file { "/home/${build_slaves::username}/tools/java/latest1.8":
     ensure => link,
-    target => '/usr/local/asfpackages/java/jdk1.8.0_172',
+    target => '/usr/local/asfpackages/java/jdk1.8.0_191',
   }
   file { "/home/${build_slaves::username}/tools/java/latest1.9":
     ensure => link,
@@ -560,20 +565,12 @@ class build_slaves::jenkins (
     target => '/usr/local/asfpackages/java/jdk-11-ea+28',
   }
 
-
-  # make gradle symlinks 4.3 is the latest
+  # install all the gradle versions, create symlinks
   build_slaves::symlink_gradle { $gradle_versions: }
-  file { "/home/${build_slaves::username}/tools/gradle/4.3":
+  # make latest gradle symlink
+  file { "/home/${build_slaves::username}/tools/gradle/latest":
     ensure => link,
-    target => '/usr/lib/gradle/4.3.1',
-  }
-  file { "/home/${build_slaves::username}/tools/gradle/4.4":
-    ensure => link,
-    target => '/usr/lib/gradle/4.4.1',
-  }
-  file { "/home/${build_slaves::username}/tools/gradle/4.8":
-    ensure => link,
-    target => '/usr/lib/gradle/4.8.1',
+    target => '/usr/lib/gradle/4.10.2',
   }
 
   cron {

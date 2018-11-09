@@ -1543,8 +1543,7 @@ svn-site-role = rw
 @oozie = rw
 
 [/openjpa]
-@openjpa=rw
-@openjpa-pmc=rw
+*=r
 
 [/openmeetings]
 * = r

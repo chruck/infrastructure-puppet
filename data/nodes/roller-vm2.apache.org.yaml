@@ -58,7 +58,7 @@ vhosts_asf::vhosts::vhosts:
       - 'blogs-test.apache.org'
     port: 80
     ssl: false
-    docroot: '/var/www'
+    docroot: '/var/www/html'
     error_log_file: 'blogs_error.log'
     custom_fragment: |
       RedirectMatch permanent ^/(.*)$ https://roller-vm2.apache.org/$1
@@ -69,13 +69,20 @@ vhosts_asf::vhosts::vhosts:
     serveraliases:
       - 'blogs-test.apache.org'
     port: 443
-    docroot: '/var/www'
+    docroot: '/var/www/html'
     error_log_file: 'blogs_error.log'
     ssl: true
     ssl_cert: '/etc/ssl/certs/wildcard.apache.org.crt'
     ssl_chain: '/etc/ssl/certs/wildcard.apache.org.chain'
     ssl_key: '/etc/ssl/private/wildcard.apache.org.key'
+    options:
+      - Indexes
+      - FollowSymLinks
+      - MultiViews
+      - ExecCGI
     custom_fragment: |
+      ScriptAlias /preview "/var/www/html/preview/preview.cgi"
       RewriteEngine On
+      ProxyPass /preview !
       ProxyPass / http://127.0.0.1:8080/
       ProxyPassReverse / http://127.0.0.1:8080/

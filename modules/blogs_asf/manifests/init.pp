@@ -195,5 +195,12 @@ class blogs_asf (
         Package['tomcat8'],
         Exec['deploy-roller'],
       ];
+    '/var/www/html/preview':
+      ensure  => present,
+      recurse => true,
+      owner   => 'tomcat8',
+      group   => 'root',
+      mode    => '0640',
+      source  => 'puppet:///modules/blogs_asf/preview';
   }
 }

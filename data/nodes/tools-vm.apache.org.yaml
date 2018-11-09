@@ -419,8 +419,8 @@ vhosts_asf::vhosts::vhosts:
         AllowOverride None
         Require all granted
       </Directory>
-      # Restrict access to jira,conf,mail,git to chairs + root.
-      <LocationMatch "^/(cgi-bin|mail|jira|confluence|git)">
+      # Restrict access to jira,conf,mail to chairs + root.
+      <LocationMatch "^/(cgi-bin|mail|jira|confluence)">
         Options +ExecCGI -MultiViews +FollowSymLinks
         AuthLDAPUrl "ldaps://ldap-eu-ro.apache.org/ou=people,dc=apache,dc=org?uid"
         AuthName "ASF Members or Project Chairs Only!"
@@ -436,5 +436,6 @@ vhosts_asf::vhosts::vhosts:
         LuaHookAuthChecker /var/www/selfserve-portal/tools/authz.lua handler
       </LocationMatch>
       Alias /cgi-bin/ss.lua /var/www/git-setup/ss.lua
+      Redirect permanent /git.html https://gitbox.apache.org/setup/newrepo.html
       ErrorDocument 401 /401.html
       ErrorDocument 403 /401.html

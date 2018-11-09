@@ -10,7 +10,7 @@ class qmail_asf (
   $shell                         = '/bin/bash',
 
   # override below in yaml
-  $parent_dir,
+  $parent_dir    = '/x1',
   $ezmlm_version = '',
 
   # override below in eyaml
@@ -19,11 +19,23 @@ class qmail_asf (
   $ap_user   = '',
   $ap_pw     = '',
 
-  $required_packages = ['qmail', 'dot-forward', 'daemontools', 'ucspi-tcp', 'rbldnsd', 'djbdns',
-                          'dnscache-run', 'dnsmasq', 'clamav', 'clamav-freshclam', 'qpsmtpd'],
+  $required_packages = [
+    'qmail',
+    'dot-forward',
+    'daemontools',
+    'ucspi-tcp',
+    'rbldnsd',
+    'djbdns',
+    'dnscache-run',
+    'dnsmasq',
+    'clamav',
+    'clamav-freshclam',
+    'qpsmtpd'
+  ],
 ){
 
-# install required packages:
+  # install required packages:
+
   package {
     $required_packages:
       ensure => 'present',
@@ -38,6 +50,7 @@ class qmail_asf (
   $logs2_dir          = "${apmail_home}/logs2"
   $json_dir           = "${apmail_home}/json"
   $svn_dot_dir        = "${apmail_home}/.subversion2"
+  $qpsmtpd_dir        = "${parent_dir}/smtpd/qpsmtpd"
   $mailqsize_port     = '8083'
 
   # ezmlm specific
@@ -70,6 +83,26 @@ class qmail_asf (
     $groupname:
       ensure => $group_present,
       name   => $groupname,
+  }
+
+  # smtpd
+
+  user {
+    'smtpd':
+      ensure     => 'present',
+      name       => 'smtpd',
+      home       => "${parent_dir}/smtpd",
+      shell      => '/bin/bash',
+      groups     => ['smtpd','apmail'],
+      managehome => true,
+      require    => Group['apmail'],
+      system     => true,
+  }
+
+  group {
+    'smtpd':
+      ensure => 'present',
+      name   => 'smtpd',
   }
 
   ### - Download, extract, configure, compile and install ezmlm-idx - ###
@@ -226,6 +259,12 @@ class qmail_asf (
       group   => qmail,
       mode    => '0755',
       require => Package['qmail'];
+    $qpsmtpd_dir:
+      ensure  => directory,
+      owner   => 'smtpd',
+      group   => $groupname,
+      mode    => '0775',
+      require => User['smtpd'];
     $control_dir:
       ensure  => directory,
       owner   => $username,
@@ -264,12 +303,6 @@ class qmail_asf (
       content => template('qmail_asf/massmove-apache.pl.erb'),
       mode    => '0755';
 
-    "${bin_dir}/move-allowed-poster":
-      owner   => $username,
-      group   => $groupname,
-      content => template('qmail_asf/move-allowed-poster.erb'),
-      mode    => '0755';
-
     "${apmail_home}/.ezmlmrc":
       owner   => $username,
       group   => $groupname,
@@ -290,4 +323,22 @@ class qmail_asf (
       require => Exec['extract-ezmlm'];
   }
 
+  exec { 'control-files':
+    command => "svn co https://svn.apache.org/repos/infra/infrastructure/trunk/qmail/control/ --config-dir=${svn_dot_dir}",
+    path    => '/usr/bin/',
+    cwd     => $qmail_dir,
+    user    => $username,
+    group   => $groupname,
+    creates => "${control_dir}/me.asf",
+    require => [ Package['subversion'], User[$username] , File[$control_dir]],
+  }
+
+  exec { 'qpsmtpd-files':
+    command => "svn co https://svn.apache.org/repos/infra/infrastructure/qpsmtpd/ --config-dir=${svn_dot_dir}",
+    path    => '/usr/bin/',
+    cwd     => "${parent_dir}/smtpd",
+    user    => $username,
+    group   => $groupname,
+    require => [ Package['subversion'], User['smtpd']],
+  }
 }

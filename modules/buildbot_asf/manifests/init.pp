@@ -76,6 +76,15 @@ class buildbot_asf (
     require     => Python::Virtualenv[buildbot],
   }
 
+  exec { 'install requests':
+    environment => [ "VIRTUAL_ENV=${venv_dir}" ],
+    command     => "${venv_dir}/bin/pip install requests",
+    cwd         => "${venv_dir}",
+    user        => $username,
+    group       => $groupname,
+    require     => Python::Virtualenv[buildbot],
+  }
+
   # populate buildmaster's .profile to activate the venv
 
   file {
@@ -102,6 +111,12 @@ class buildbot_asf (
       group   => $groupname,
       mode    => '0640',
       content => template('buildbot_asf/private.py.erb');
+    "${venv_dir}/master1/slack.py":
+      ensure => 'present',
+      owner  => $username,
+      group  => $groupname,
+      mode   => '0640',
+      source => 'puppet:///modules/buildbot_asf/slack.py';
 
     # template files and html
 

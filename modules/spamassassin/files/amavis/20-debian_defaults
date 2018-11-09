@@ -27,7 +27,7 @@ $syslog_ident = 'amavis';    # syslog ident tag, prepended to all messages
 $syslog_facility = 'mail';
 $syslog_priority = 'debug';  # switch to info to drop debug output, etc
 
-$enable_db = 1;              # enable use of BerkeleyDB/libdb (SNMP and nanny)
+$enable_db = 0;              # enable use of BerkeleyDB/libdb (SNMP and nanny)
 $enable_global_cache = 1;    # enable use of libdb-based cache if $enable_db=1
 
 $inet_socket_port = 10024;   # default listening socket

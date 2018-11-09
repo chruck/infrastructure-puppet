@@ -26,7 +26,7 @@ postfix::server::inet_protocols: 'ipv4'
 postfix::dbfile:
   transport_maps:
     content: |
-      testing10@infra.apache.org smtp:[hermes-vm.apache.org]:587
+      testing10@infra.apache.org smtp:[hermes-vm.apache.org]:2025
       apache.org              smtp:[hermes.apache.org]:2025
       .apache.org             smtp:[hermes.apache.org]:2025      
       apachecon.com           smtp:[hermes.apache.org]:2025

@@ -1,0 +1,61 @@
+# Clean the entire docker system:
+docker system prune -a
+
+# Create a network for all docker containers to talk to each other:
+docker network create asf
+
+docker run -t -i --rm ubuntu bash
+docker run --net asf --name containerN -ti --rm ubuntu bash
+        apt update
+        apt upgrade -y
+        #apt install -y git ruby ruby-gpgme ruby-dev ruby-build
+        apt install -y git ruby-build
+        git clone https://gitlab.com/chruck/dot.bashrc.jas.git
+        export SHELL
+        . dot.bashrc.jas/.bashrc.jas
+        git clone https://github.com/chruck/infrastructure-puppet.git
+        gem install bundler
+        cd infrastructure-puppet/
+        bundle install
+
+# Test puppet:
+docker run --net asf --name {puppet,slaveN} --hostnamename \
+                {puppet,slaveN} -ti --rm ubuntu bash
+        apt update
+        apt upgrade -y
+        #apt install -y puppet  # slave
+        apt install -y puppet-master
+        service puppet-master start
+        service puppet start
+        puppet cert list --all   # Shows certs signed/to be signed
+        puppet cert sign ${node} # Accept cert
+
+        puppet agent -t --service=puppet-master.local # Start agent,
+                                                      # pull down catalog
+        # Put puppet code in # /etc/puppetlabs/code/environments/production
+
+# PuppetMaster:
+docker run --net asf --name puppet --hostnamename puppet -ti --rm ubuntu bash
+        apt update
+        apt upgrade -y
+        apt install -y puppet-master git ruby-build ruby-dev
+        git clone https://gitlab.com/chruck/dot.bashrc.jas.git
+        export SHELL
+        . dot.bashrc.jas/.bashrc.jas
+        cd /etc
+        #mv puppet{,.orig}
+        git clone https://github.com/chruck/infrastructure-puppet.git puppet.new
+        cd /etc/puppet
+        for i in code data environments manifests modules spec ssl; do
+                ln -s ../puppet.new/${i};
+        done
+        cd /etc/puppet.new
+        gem install bundler
+        bundle install
+        service puppet-master start
+        service puppet start
+        puppet agent -t # Start agent, pull down catalog ( --debug )
+
+
+puppet apply --noop site.pp
+puppet apply site.pp
